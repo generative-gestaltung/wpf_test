@@ -15,3 +15,4 @@ C:\Users\Benjamin\source\repos\WpfApp1\WpfApp1\obj\Release\WpfApp1.csproj.Genera
 C:\Users\Benjamin\source\repos\WpfApp1\WpfApp1\obj\Release\WpfApp1.csproj.CoreCompileInputs.cache
 C:\Users\Benjamin\source\repos\WpfApp1\WpfApp1\obj\Release\WpfApp1.exe
 C:\Users\Benjamin\source\repos\WpfApp1\WpfApp1\obj\Release\WpfApp1.pdb
+C:\Users\Benjamin\source\repos\WpfApp1\WpfApp1\obj\Release\WpfApp1.csprojResolveAssemblyReference.cache

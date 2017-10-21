@@ -108,7 +108,12 @@ namespace WpfApp1
                 //this.udpClient.Connect("127.0.0.1", 8888);
                 //this.udpClient.Send(data, data.Length);
 
+               
                 var host = new Host();
+                //this.label.Content = host;
+
+                //host.InitializeWpfAgent();
+
                 gazePointDataStream = host.Streams.CreateGazePointDataStream(Tobii.Interaction.Framework.GazePointDataMode.Unfiltered);
                 gazePointDataStream.GazePoint((x, y, ts) =>
                 {
@@ -116,7 +121,9 @@ namespace WpfApp1
 
                     String str = x.ToString() + "\n" + y.ToString();
                     this.label.Content = str;
-                    //this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length);
+                    var sender = UdpUser.ConnectTo("127.0.0.1", 8888);
+                    sender.Send(str);
+                    this.label.Content = str;
                 });
 
                 this.rnd = new Random();
