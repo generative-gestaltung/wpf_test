@@ -12,12 +12,16 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Net.Sockets;
-using Tobii.Interaction;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Net;
-using System.Net.Sockets;
+
+//using Tobii.Interaction;
+//using Tobii.StreamEngine;
+using Tobii.EyeX;
+using Tobii.EyeX.Framework;
+using EyeXFramework;
 
 
 namespace WpfApp1
@@ -90,6 +94,7 @@ namespace WpfApp1
     public partial class MainWindow : Window
     {
 
+        
         private GazePointDataStream gazePointDataStream;
         private UdpUser sender;
 
@@ -108,18 +113,24 @@ namespace WpfApp1
             this.sender.Send(str);
         }
 
+        public void onGaze2 (GazePointEventArgs e)
+        {
+
+        }
+
         public MainWindow()
         {
             InitializeComponent();
             try
             {
                 this.sender = UdpUser.ConnectTo("127.0.0.1", 8888);
-                var host = new Host();
-                //this.label.Content = host;
-                //host.InitializeWpfAgent();
-
-                gazePointDataStream = host.Streams.CreateGazePointDataStream(Tobii.Interaction.Framework.GazePointDataMode.Unfiltered);
-                gazePointDataStream.GazePoint(this.onGaze);
+                var host = new EyeXHost();
+                host.Start();
+                this.gazePointDataStream = host.CreateGazePointDataStream(GazePointDataMode.Unfiltered);
+                //this.gazePointDataStream.Next += this.onGaze2;
+                //var host = new Host();
+                //gazePointDataStream = host.Streams.CreateGazePointDataStream(Tobii.Interaction.Framework.GazePointDataMode.Unfiltered);
+                //gazePointDataStream.GazePoint(this.onGaze);
                 /*
                 gazePointDataStream.GazePoint((x, y, ts) =>
                 {
@@ -144,7 +155,8 @@ namespace WpfApp1
                     .HasGaze(() => this.label.Content = "gaze")
                     .LostGaze(() => this.label.Content = "no gaze");
                 */
-                this.label.Content = "OK";
+                this.label.Content = host.EyeTrackingDeviceStatus;
+
             }
             catch (Exception e)
             {
