@@ -91,6 +91,7 @@ namespace WpfApp1
     {
 
         private GazePointDataStream gazePointDataStream;
+        private UdpUser sender;
 
         //private UdpClient udpClient;
         //private Timer timer0;
@@ -99,32 +100,36 @@ namespace WpfApp1
         private int[] gazeDataDummy = { 200, 200 };
         private Random rnd;
 
+
+        public void onGaze (double x, double y, double ts)
+        {
+            String str = x.ToString() + "\n" + y.ToString();
+            this.label.Content = str;
+            this.sender.Send(str);
+        }
+
         public MainWindow()
         {
             InitializeComponent();
             try
             {
-                //this.udpClient = new UdpClient(8888);
-                //this.udpClient.Connect("127.0.0.1", 8888);
-                //this.udpClient.Send(data, data.Length);
-
-               
+                this.sender = UdpUser.ConnectTo("127.0.0.1", 8888);
                 var host = new Host();
                 //this.label.Content = host;
-
                 //host.InitializeWpfAgent();
 
                 gazePointDataStream = host.Streams.CreateGazePointDataStream(Tobii.Interaction.Framework.GazePointDataMode.Unfiltered);
+                gazePointDataStream.GazePoint(this.onGaze);
+                /*
                 gazePointDataStream.GazePoint((x, y, ts) =>
                 {
-                    this.label.Content = "x=" + x + " y=" + y;
-
                     String str = x.ToString() + "\n" + y.ToString();
-                    this.label.Content = str;
                     var sender = UdpUser.ConnectTo("127.0.0.1", 8888);
                     sender.Send(str);
                     this.label.Content = str;
                 });
+                */
+
 
                 this.rnd = new Random();
                 this.button0.Click += new RoutedEventHandler(this.onClick);
@@ -152,39 +157,9 @@ namespace WpfApp1
             this.gazeDataDummy[0] = this.rnd.Next(100, 800);
             this.gazeDataDummy[1] = this.rnd.Next(100, 800);
             String str = this.gazeDataDummy[0].ToString() + "\n" + this.gazeDataDummy[1].ToString();
-            //this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length);
-                
-            var sender = UdpUser.ConnectTo("127.0.0.1", 8888);
-            sender.Send(str);
+            this.sender.Send(str);
             this.label.Content = str;
         }
-
-
-        /*
-        private void Update(Object state)
-        {
-            lock(this)
-            {
-                //this.label.Content = this.cnt;
-                //this.cnt++;
-                try
-                {
-                    Random rnd = new Random();
-                    this.gazeDataDummy[0] = rnd.Next(100, 800);
-                    this.gazeDataDummy[1] = rnd.Next(100, 800);
-                    String str = this.gazeDataDummy[0].ToString() + "\n" + this.gazeDataDummy[1].ToString();
-                    //this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length); // data.Length);
-                    //Console.Write("ok");
-                    //this.label.Content = "ok";
-                }
-                catch (Exception e)
-                {
-                    this.label.Content = e;
-                    //Console.Write(e);
-                }
-            }
-        }
-        */
     }
 }
 
