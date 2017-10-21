@@ -11,25 +11,89 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-//using System.Windows.Shapes;
 using System.Net.Sockets;
 using Tobii.Interaction;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Net;
+using System.Net.Sockets;
+
 
 namespace WpfApp1
 {
-    /// <summary>
-    /// Interaktionslogik für MainWindow.xaml
-    /// </summary>
+
+    public struct Received
+    {
+        public IPEndPoint Sender;
+        public string Message;
+    }
+
+
+    abstract class UdpBase
+    {
+        protected UdpClient Client;
+
+        protected UdpBase()
+        {
+            Client = new UdpClient();
+        }
+
+        public async Task<Received> Receive()
+        {
+            var result = await Client.ReceiveAsync();
+            return new Received()
+            {
+                Message = Encoding.ASCII.GetString(result.Buffer, 0, result.Buffer.Length),
+                Sender = result.RemoteEndPoint
+            };
+        }
+    }
+
+    //Server
+    class UdpListener : UdpBase
+    {
+        private IPEndPoint _listenOn;
+
+        public UdpListener(int port) : this(new IPEndPoint(IPAddress.Any, port))
+        {
+
+        }
+
+        public UdpListener(IPEndPoint endpoint)
+        {
+            _listenOn = endpoint;
+            Client = new UdpClient(_listenOn);
+        }
+    }
+
+    //Client
+    class UdpUser : UdpBase
+    {
+        private UdpUser() { }
+
+        public static UdpUser ConnectTo(string hostname, int port)
+        {
+            var connection = new UdpUser();
+            connection.Client.Connect(hostname, port);
+            return connection;
+        }
+
+        public void Send(string message)
+        {
+            var datagram = Encoding.ASCII.GetBytes(message);
+            Client.Send(datagram, datagram.Length);
+        }
+    }
+
+
     public partial class MainWindow : Window
     {
 
         private GazePointDataStream gazePointDataStream;
 
-        private UdpClient udpClient;
-        private Timer timer0;
+        //private UdpClient udpClient;
+        //private Timer timer0;
         //private int cnt = 0;
         private Byte[] data = { 0, 1, 2, 3 };
         private int[] gazeDataDummy = { 200, 200 };
@@ -40,8 +104,8 @@ namespace WpfApp1
             InitializeComponent();
             try
             {
-                this.udpClient = new UdpClient(8888);
-                this.udpClient.Connect("127.0.0.1", 8888);
+                //this.udpClient = new UdpClient(8888);
+                //this.udpClient.Connect("127.0.0.1", 8888);
                 //this.udpClient.Send(data, data.Length);
 
                 var host = new Host();
@@ -52,7 +116,7 @@ namespace WpfApp1
 
                     String str = x.ToString() + "\n" + y.ToString();
                     this.label.Content = str;
-                    this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length);
+                    //this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length);
                 });
 
                 this.rnd = new Random();
@@ -81,10 +145,15 @@ namespace WpfApp1
             this.gazeDataDummy[0] = this.rnd.Next(100, 800);
             this.gazeDataDummy[1] = this.rnd.Next(100, 800);
             String str = this.gazeDataDummy[0].ToString() + "\n" + this.gazeDataDummy[1].ToString();
+            //this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length);
+                
+            var sender = UdpUser.ConnectTo("127.0.0.1", 8888);
+            sender.Send(str);
             this.label.Content = str;
-            this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length);
         }
 
+
+        /*
         private void Update(Object state)
         {
             lock(this)
@@ -97,7 +166,7 @@ namespace WpfApp1
                     this.gazeDataDummy[0] = rnd.Next(100, 800);
                     this.gazeDataDummy[1] = rnd.Next(100, 800);
                     String str = this.gazeDataDummy[0].ToString() + "\n" + this.gazeDataDummy[1].ToString();
-                    this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length); // data.Length);
+                    //this.udpClient.Send(Encoding.ASCII.GetBytes(str), str.Length); // data.Length);
                     //Console.Write("ok");
                     //this.label.Content = "ok";
                 }
@@ -108,5 +177,139 @@ namespace WpfApp1
                 }
             }
         }
+        */
     }
 }
+
+/*
+ * using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
+
+namespace WpfApp1
+{
+
+    /*
+    public struct Received
+    {
+        public IPEndPoint Sender;
+        public string Message;
+    }
+
+
+    abstract class UdpBase
+    {
+        protected UdpClient Client;
+
+        protected UdpBase()
+        {
+            Client = new UdpClient();
+        }
+
+        public async Task<Received> Receive()
+        {
+            var result = await Client.ReceiveAsync();
+            return new Received()
+            {
+                Message = Encoding.ASCII.GetString(result.Buffer, 0, result.Buffer.Length),
+                Sender = result.RemoteEndPoint
+            };
+        }
+    }
+
+    //Server
+    class UdpListener : UdpBase
+    {
+        private IPEndPoint _listenOn;
+
+        public UdpListener(int port) : this(new IPEndPoint(IPAddress.Any, port))
+        {
+
+        }
+
+        public UdpListener(IPEndPoint endpoint)
+        {
+            _listenOn = endpoint;
+            Client = new UdpClient(_listenOn);
+        }
+    }
+
+    //Client
+    class UdpUser : UdpBase
+    {
+        private UdpUser() { }
+
+        public static UdpUser ConnectTo(string hostname, int port)
+        {
+            var connection = new UdpUser();
+            connection.Client.Connect(hostname, port);
+            return connection;
+        }
+
+        public void Send(string message)
+        {
+            var datagram = Encoding.ASCII.GetBytes(message);
+            Client.Send(datagram, datagram.Length);
+        }
+    }
+
+}
+
+
+
+/*
+
+class Program
+{
+    static int MODE_SEND = 0;
+    static int MODE_RECV = 1;
+
+    static void Main(string[] args)
+    {
+        int mode = MODE_SEND;
+
+        if (mode == MODE_RECV)
+        {
+            //create a new server
+            var server = new UdpListener(8888);
+
+            //start listening for messages and copy the messages back to the client
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    var received = await server.Receive();
+                    Console.WriteLine ("recv: "+received.Message);
+                }
+            });
+            while (true) { }
+        }
+
+
+        if (mode == MODE_SEND)
+        {
+            Random rand = new Random();
+            var client = UdpUser.ConnectTo("127.0.0.1", 8888);
+
+            while (true)
+            {
+                int x = rand.Next(0, 1000);
+                int y = rand.Next(0, 1000);
+
+                client.Send (x.ToString()+"\n"+y.ToString());
+                Thread.Sleep(100);
+                //Console.WriteLine("sent");
+            }
+        }
+    }
+}
+*/
+
